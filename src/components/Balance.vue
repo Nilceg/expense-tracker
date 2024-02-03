@@ -4,15 +4,12 @@
 </template>
 
 <script setup>
-
-import { DefineProps } from 'vue';
+import {defineProps} from 'vue'
 
 const props = defineProps({
-
     total: {
         type: Number,
         require: true,
     }
 })
-
 </script>

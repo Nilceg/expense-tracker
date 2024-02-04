@@ -1,11 +1,14 @@
 <script setup>
-  import {ref, computed, onMounted} from 'vue'
+  import {ref, computed, onMounted, toDisplayString} from 'vue'
   import Header from './components/Header.vue'
   import Balance from './components/Balance.vue'
   import IncomeExpenses from './components/IncomeExpenses.vue';
   import AddTransaction from './components/AddTransaction.vue';
   import TransactionList from './components/TransactionList.vue';
+  import {useToast} from 'vue-toastification'
+
   const transactions = ref([])
+  const toast = useToast()
   // const transactions = ref([
   //   {id : 1, text: 'Paycheck', amount: 699.99},
   //   {id : 2, text: 'Food', amount: -20},
@@ -41,17 +44,16 @@
     }, 0)
     .toFixed(2)
   })
-
+//handle transaction submitted
   const handleTransactionSubmitted = (transactionData) => {
     transactions.value.push({
       id: generateUniqueId(),
       text: transactionData.text,
       amount: transactionData.amount,
     })
-    // console.log(transactions)
-    // console.log(JSON.stringify(transactions.value))
-
+    toast.success('Transaction Added')
     saveTransactionsToLocalStorage()
+    toDisplayString.success('Transaction Added')
   }
 
   //generate unique ids
@@ -63,6 +65,7 @@
   const handleTransactionsDeleted = (id) => {
     transactions.value = transactions.value.filter((transaction) => transaction.id !== id)
     saveTransactionsToLocalStorage()
+    toast.success('Transaction Deleted')
   }
 
   //save to local storage

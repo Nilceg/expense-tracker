@@ -1,48 +1,93 @@
 <script setup>
-    import Header from './components/Header.vue';
-    import Balance from './components/Balance.vue';
-    import IncomeExpenses from './components/IncomeExpenses.vue';
-    import {ref} from 'vue'
+  import {ref, computed, onMounted} from 'vue'
+  import Header from './components/Header.vue'
+  import Balance from './components/Balance.vue'
+  import IncomeExpenses from './components/IncomeExpenses.vue';
+  import AddTransaction from './components/AddTransaction.vue';
+  import TransactionList from './components/TransactionList.vue';
+  const transactions = ref([])
+  // const transactions = ref([
+  //   {id : 1, text: 'Paycheck', amount: 699.99},
+  //   {id : 2, text: 'Food', amount: -20},
+  //   {id : 3, text: 'Bills', amount: -200},
+  //   {id : 4, text: 'Video Game', amount: -54.11},
+  //   {id : 5, text: 'Tax Return', amount: 3000},
+  // ])
 
-    const transactions = ref([
-    {id : 1, text: 'Paycheck', amount: 699.99},
-    {id : 2, text: 'Food', amount: -20},
-    {id : 3, text: 'Bills', amount: -200},
-    {id : 4, text: 'Video Game', amount: -54.11},
-    {id : 5, text: 'Tax Return', amount: 3000},
-  ])
-
-
-  //get the total
+  //get total 
   const total = computed(() => {
     return transactions.value.reduce( (acc, transaction) => {
       return acc + transaction.amount
     }, 0)
   })
-  //get the income by adding all positive values
-  const income = computed( () => {
+
+  //get income
+  const income = computed(() => {
     return transactions.value
     .filter((transaction) => transaction.amount > 0)
-    .reduce((acc, transaction) => {
+    .reduce( (acc, transaction) => {
       return acc + transaction.amount
-    })
+    }, 0)
+    .toFixed(2)
   })
-  
-  //get the expenses by adding all negative values
-  const expense = computed( () => {
+
+
+  //get expense
+  const expense = computed(() => {
     return transactions.value
     .filter((transaction) => transaction.amount < 0)
-    .reduce((acc, transaction) => {
+    .reduce( (acc, transaction) => {
       return acc + transaction.amount
+    }, 0)
+    .toFixed(2)
+  })
+
+  const handleTransactionSubmitted = (transactionData) => {
+    transactions.value.push({
+      id: generateUniqueId(),
+      text: transactionData.text,
+      amount: transactionData.amount,
     })
+    // console.log(transactions)
+    // console.log(JSON.stringify(transactions.value))
+
+    saveTransactionsToLocalStorage()
+  }
+
+  //generate unique ids
+  const generateUniqueId = () => {
+    return Math.floor(Math.random() * 10000000)
+  }
+
+  //delete transaction
+  const handleTransactionsDeleted = (id) => {
+    transactions.value = transactions.value.filter((transaction) => transaction.id !== id)
+    saveTransactionsToLocalStorage()
+  }
+
+  //save to local storage
+  const saveTransactionsToLocalStorage = () => {
+    localStorage.setItem('transactions', JSON.stringify(transactions.value))
+  }
+
+  //first loads
+  onMounted( () => {
+    const savedTransactions = JSON.parse(localStorage.getItem('transactions'))
+
+    if(savedTransactions)
+    {
+      transactions.value = savedTransactions
+    }
   })
 </script>
 
- 
 <template>
-  <Header></Header>
+  <Header />
   <div class="container">
-    <Balance :total="total"></Balance>
-    <IncomeExpenses :income="income" :expense="expense"></IncomeExpenses>
+    <Balance :total="+total"></Balance>
+    <IncomeExpenses :income="+income" :expense="+expense"></IncomeExpenses>
+    <TransactionList :transactions="transactions" @transactionDeleted="handleTransactionsDeleted"></TransactionList>
+    <AddTransaction @transactionSubmitted="handleTransactionSubmitted"></AddTransaction>
+    <!-- {{ transactions }} -->
   </div>
 </template>
